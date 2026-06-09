@@ -1,0 +1,5 @@
+id,nome,tipo,status,navioAtual,tempoOcupacao_h,previsaoLiberacao,capacidadeMaxima_ton,utilizacao_pct
+B1,Berço 1 - Grãos Sólidos,Grãos,Ocupado,Soja Express,6.5,2026-06-04T14:30,60000,78
+B2,Berço 2 - Contêineres,Contêineres,Livre,,,,50000,0
+B3,Berço 3 - Combustíveis,Combustíveis,Ocupado,Oil Tanker 5,11.2,2026-06-04T18:45,70000,92
+B4,Berço 4 - Multiuso,Multiuso,Ocupado,General Cargo III,4.8,2026-06-04T11:20,45000,65
