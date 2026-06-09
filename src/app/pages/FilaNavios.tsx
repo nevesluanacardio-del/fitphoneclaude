@@ -1,8 +1,10 @@
 import { motion } from "motion/react";
-import { naviosMock } from "../data/mockData";
+import { useDadosOperacionais } from "../data/DadosContext";
 import { Ship, Clock, AlertTriangle, Cloud, Anchor, TrendingUp } from "lucide-react";
 
 export function FilaNavios() {
+  const { navios } = useDadosOperacionais();
+
   const getStatusClimaticoColor = (status: string) => {
     switch (status) {
       case "Favorável":
@@ -31,7 +33,7 @@ export function FilaNavios() {
     }
   };
 
-  const sortedNavios = [...naviosMock].sort((a, b) => {
+  const sortedNavios = [...navios].sort((a, b) => {
     const prioridadeOrder = { Crítica: 0, Alta: 1, Média: 2, Baixa: 3 };
     return prioridadeOrder[a.prioridade] - prioridadeOrder[b.prioridade];
   });
@@ -47,7 +49,7 @@ export function FilaNavios() {
         <div className="flex items-center gap-4">
           <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
             <p className="text-sm text-blue-700">
-              Total na Fila: <span className="font-semibold">{naviosMock.length} navios</span>
+              Total na Fila: <span className="font-semibold">{navios.length} navios</span>
             </p>
           </div>
         </div>
@@ -66,7 +68,7 @@ export function FilaNavios() {
             </div>
             <div>
               <p className="text-2xl font-bold text-red-700">
-                {naviosMock.filter((n) => n.prioridade === "Crítica").length}
+                {navios.filter((n) => n.prioridade === "Crítica").length}
               </p>
               <p className="text-sm text-red-600">Prioridade Crítica</p>
             </div>
@@ -85,7 +87,7 @@ export function FilaNavios() {
             </div>
             <div>
               <p className="text-2xl font-bold text-orange-700">
-                {naviosMock.filter((n) => n.prioridade === "Alta").length}
+                {navios.filter((n) => n.prioridade === "Alta").length}
               </p>
               <p className="text-sm text-orange-600">Prioridade Alta</p>
             </div>
@@ -104,7 +106,7 @@ export function FilaNavios() {
             </div>
             <div>
               <p className="text-2xl font-bold text-yellow-700">
-                {naviosMock.filter((n) => n.statusClimatico !== "Favorável").length}
+                {navios.filter((n) => n.statusClimatico !== "Favorável").length}
               </p>
               <p className="text-sm text-yellow-600">Risco Climático</p>
             </div>
@@ -123,7 +125,7 @@ export function FilaNavios() {
             </div>
             <div>
               <p className="text-2xl font-bold text-blue-700">
-                {(naviosMock.reduce((acc, n) => acc + n.tempoEspera, 0) / naviosMock.length).toFixed(1)}h
+                {(navios.reduce((acc, n) => acc + n.tempoEspera, 0) / navios.length).toFixed(1)}h
               </p>
               <p className="text-sm text-blue-600">Tempo Médio</p>
             </div>

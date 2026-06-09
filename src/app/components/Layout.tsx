@@ -1,7 +1,43 @@
 import { Outlet, NavLink } from "react-router";
 import { Anchor, BarChart3, Ship, Layers, Lightbulb } from "lucide-react";
+import { DadosProvider, useDadosOperacionais } from "../data/DadosContext";
+
+function StatusAtualizacao() {
+  const { ultimaAtualizacao, carregando, erro } = useDadosOperacionais();
+
+  const corPonto = erro ? "bg-amber-400" : "bg-emerald-400";
+  const rotulo = erro ? "Dados em cache" : "Atualizado em tempo real";
+  const horario = ultimaAtualizacao
+    ? ultimaAtualizacao.toLocaleString("pt-BR")
+    : carregando
+      ? "Carregando..."
+      : "—";
+
+  return (
+    <div className="text-right">
+      <p className="flex items-center justify-end gap-2 text-sm text-blue-200">
+        <span className="relative flex h-2 w-2">
+          {!erro && (
+            <span className={`absolute inline-flex h-full w-full animate-ping rounded-full ${corPonto} opacity-75`} />
+          )}
+          <span className={`relative inline-flex h-2 w-2 rounded-full ${corPonto}`} />
+        </span>
+        {rotulo}
+      </p>
+      <p className="font-semibold">{horario}</p>
+    </div>
+  );
+}
 
 export function Layout() {
+  return (
+    <DadosProvider>
+      <LayoutInterno />
+    </DadosProvider>
+  );
+}
+
+function LayoutInterno() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
@@ -17,10 +53,7 @@ export function Layout() {
                 <p className="text-blue-200 text-sm">Sistema Inteligente de Atracação - Porto do Itaqui</p>
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-blue-200">Atualizado em tempo real</p>
-              <p className="font-semibold">{new Date().toLocaleString('pt-BR')}</p>
-            </div>
+            <StatusAtualizacao />
           </div>
         </div>
       </header>

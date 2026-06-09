@@ -52,3 +52,27 @@ hosts, configure o servidor para servir `index.html` em todas as rotas
 - `/fila` — Fila de Navios
 - `/simulacao` — Simulação
 - `/recomendacao` — Recomendação
+
+## Dados em tempo real
+
+As telas leem os dados de arquivos CSV em `public/data/` e fazem *polling*
+automático, então a interface se atualiza sozinha conforme os arquivos mudam:
+
+- `public/data/navios.csv` — fila de navios
+- `public/data/bercos.csv` — berços
+- `public/data/indicadores.csv` — KPIs operacionais
+
+**Como ver atualizando:** edite qualquer um desses CSVs (localmente ou no host
+publicado) e salve — em poucos segundos o Dashboard, a Fila, os Berços e a
+Recomendação refletem os novos valores. O cabeçalho mostra um indicador "ao vivo"
+com o horário da última leitura.
+
+Detalhes de implementação:
+
+- `src/app/data/dataSource.ts` — busca e converte os CSVs (único ponto que conhece
+  o formato bruto; para trocar por uma API REST ou WebSocket no futuro, altere só aqui).
+- `src/app/data/DadosContext.tsx` — distribui os dados via React Context e faz o
+  polling (um único polling alimenta todas as páginas). Se o fetch falhar, mantém
+  os últimos dados válidos (semente em `mockData.ts`).
+- Intervalo de atualização: 5s por padrão. Pode ser ajustado com a variável de
+  ambiente `VITE_POLL_INTERVAL` (em milissegundos), ex.: `VITE_POLL_INTERVAL=3000`.

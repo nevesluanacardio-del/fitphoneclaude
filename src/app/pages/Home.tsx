@@ -1,11 +1,13 @@
 import { motion } from "motion/react";
 import { MetricCard } from "../components/MetricCard";
 import { Clock, Ship, Activity, AlertTriangle, Cloud, TrendingUp } from "lucide-react";
-import { indicadoresMock, bercosMock, naviosMock } from "../data/mockData";
+import { useDadosOperacionais } from "../data/DadosContext";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 
 export function Home() {
-  const bercoData = bercosMock.map(b => ({
+  const { navios, bercos, indicadores } = useDadosOperacionais();
+
+  const bercoData = bercos.map(b => ({
     nome: b.id,
     utilizacao: b.utilizacao,
   }));
@@ -19,12 +21,12 @@ export function Home() {
     { hora: "20:00", espera: 7.1 },
   ];
 
-  const cargaData = [
-    { tipo: "Grãos", quantidade: 2 },
-    { tipo: "Contêineres", quantidade: 2 },
-    { tipo: "Combustíveis", quantidade: 1 },
-    { tipo: "Multiuso", quantidade: 2 },
-  ];
+  const cargaData = (["Grãos", "Contêineres", "Combustíveis", "Multiuso"] as const)
+    .map((tipo) => ({
+      tipo,
+      quantidade: navios.filter((n) => n.tipoCarga === tipo).length,
+    }))
+    .filter((d) => d.quantidade > 0);
 
   const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"];
 
@@ -45,7 +47,7 @@ export function Home() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <MetricCard
           title="Tempo Médio de Espera"
-          value={`${indicadoresMock.tempoMedioEspera}h`}
+          value={`${indicadores.tempoMedioEspera}h`}
           icon={Clock}
           color="blue"
           trend="down"
@@ -53,13 +55,13 @@ export function Home() {
         />
         <MetricCard
           title="Navios na Fila"
-          value={indicadoresMock.tamanhoFila}
+          value={indicadores.tamanhoFila}
           icon={Ship}
           color="slate"
         />
         <MetricCard
           title="Utilização de Berços"
-          value={`${indicadoresMock.utilizacaoBercos}%`}
+          value={`${indicadores.utilizacaoBercos}%`}
           icon={Activity}
           color="green"
           trend="up"
@@ -67,20 +69,20 @@ export function Home() {
         />
         <MetricCard
           title="Atraso Crítico"
-          value={indicadoresMock.naviosAtrasoCritico}
+          value={indicadores.naviosAtrasoCritico}
           subtitle="navios"
           icon={AlertTriangle}
           color="red"
         />
         <MetricCard
           title="Risco Climático"
-          value={`${indicadoresMock.riscoClimatico}%`}
+          value={`${indicadores.riscoClimatico}%`}
           icon={Cloud}
           color="yellow"
         />
         <MetricCard
           title="Congestionamento"
-          value={`${indicadoresMock.congestionamentoPrevisto}%`}
+          value={`${indicadores.congestionamentoPrevisto}%`}
           icon={TrendingUp}
           color="yellow"
         />
@@ -187,7 +189,7 @@ export function Home() {
         >
           <h3 className="text-lg font-semibold text-slate-900 mb-4">Próximos Navios - Prioridade</h3>
           <div className="space-y-3">
-            {naviosMock
+            {navios
               .filter(n => n.prioridade === "Crítica" || n.prioridade === "Alta")
               .slice(0, 4)
               .map((navio, index) => (
@@ -231,7 +233,7 @@ export function Home() {
       >
         <h3 className="text-lg font-semibold text-slate-900 mb-4">Status Atual dos Berços</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {bercosMock.map((berco) => (
+          {bercos.map((berco) => (
             <div
               key={berco.id}
               className="border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow"

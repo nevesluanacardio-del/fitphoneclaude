@@ -1,8 +1,10 @@
 import { motion } from "motion/react";
-import { bercosMock } from "../data/mockData";
+import { useDadosOperacionais } from "../data/DadosContext";
 import { Anchor, Clock, Package, AlertCircle } from "lucide-react";
 
 export function Bercos() {
+  const { bercos } = useDadosOperacionais();
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -22,7 +24,7 @@ export function Bercos() {
           {/* Ocean representation */}
           <div className="bg-gradient-to-b from-blue-400 to-blue-600 rounded-lg p-8 min-h-[300px]">
             <div className="grid grid-cols-4 gap-6 h-full">
-              {bercosMock.map((berco, index) => (
+              {bercos.map((berco, index) => (
                 <motion.div
                   key={berco.id}
                   initial={{ opacity: 0, y: 50 }}
@@ -61,7 +63,7 @@ export function Bercos() {
 
       {/* Detalhes dos Berços */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {bercosMock.map((berco, index) => (
+        {bercos.map((berco, index) => (
           <motion.div
             key={berco.id}
             initial={{ opacity: 0, x: -20 }}
@@ -209,25 +211,25 @@ export function Bercos() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div className="text-center">
             <p className="text-3xl font-bold text-green-600">
-              {bercosMock.filter((b) => b.status === "Livre").length}
+              {bercos.filter((b) => b.status === "Livre").length}
             </p>
             <p className="text-sm text-slate-600 mt-1">Berços Livres</p>
           </div>
           <div className="text-center">
             <p className="text-3xl font-bold text-blue-600">
-              {bercosMock.filter((b) => b.status === "Ocupado").length}
+              {bercos.filter((b) => b.status === "Ocupado").length}
             </p>
             <p className="text-sm text-slate-600 mt-1">Berços Ocupados</p>
           </div>
           <div className="text-center">
             <p className="text-3xl font-bold text-slate-900">
-              {Math.round(bercosMock.reduce((acc, b) => acc + b.utilizacao, 0) / bercosMock.length)}%
+              {Math.round(bercos.reduce((acc, b) => acc + b.utilizacao, 0) / bercos.length)}%
             </p>
             <p className="text-sm text-slate-600 mt-1">Utilização Média</p>
           </div>
           <div className="text-center">
             <p className="text-3xl font-bold text-slate-900">
-              {bercosMock.reduce((acc, b) => acc + b.capacidadeMaxima, 0).toLocaleString()}t
+              {bercos.reduce((acc, b) => acc + b.capacidadeMaxima, 0).toLocaleString()}t
             </p>
             <p className="text-sm text-slate-600 mt-1">Capacidade Total</p>
           </div>

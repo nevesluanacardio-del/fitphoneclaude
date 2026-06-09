@@ -1,16 +1,18 @@
 import { motion } from "motion/react";
-import { naviosMock, bercosMock } from "../data/mockData";
+import { useDadosOperacionais } from "../data/DadosContext";
 import { Ship, Clock, TrendingUp, AlertTriangle, CheckCircle, Anchor, Calendar, ArrowRight } from "lucide-react";
 
 export function Recomendacao() {
+  const { navios, bercos } = useDadosOperacionais();
+
   // Ordenar navios por índice dinâmico
-  const sortedNavios = [...naviosMock].sort((a, b) => (b.indiceDinamico || 0) - (a.indiceDinamico || 0));
+  const sortedNavios = [...navios].sort((a, b) => (b.indiceDinamico || 0) - (a.indiceDinamico || 0));
 
   // Próximo navio recomendado
   const nextShip = sortedNavios[0];
 
   // Berço livre correspondente
-  const availableBerth = bercosMock.find(
+  const availableBerth = bercos.find(
     (b) => b.status === "Livre" && nextShip.bercoCompativel.includes(b.id)
   );
 
