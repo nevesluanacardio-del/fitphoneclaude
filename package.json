@@ -6,11 +6,13 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "ais": "tsx server/aisCollector.ts"
   },
   "dependencies": {
     "react": "18.3.1",
     "react-dom": "18.3.1",
+    "ws": "8.18.0",
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
     "@mui/icons-material": "7.3.5",
@@ -69,8 +71,10 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.1.12",
+    "@types/ws": "8.5.13",
     "@vitejs/plugin-react": "4.7.0",
     "tailwindcss": "4.1.12",
+    "tsx": "4.19.2",
     "vite": "6.3.5"
   },
   "peerDependencies": {

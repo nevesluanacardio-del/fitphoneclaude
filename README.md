@@ -91,6 +91,46 @@ navios, berços e indicadores.
   os últimos dados válidos (semente em `mockData.ts`) e sinaliza no cabeçalho.
 - Intervalo de *polling*: 5s por padrão (`VITE_POLL_INTERVAL`, em ms).
 
+### Navios reais via AIS (aisstream.io)
+
+Dá para alimentar a **Fila de Navios com dados reais** das embarcações que se
+aproximam do Porto do Itaqui, usando o AIS (sinal que os navios transmitem com
+identificação, posição, rumo e velocidade) via [aisstream.io](https://aisstream.io)
+— gratuito.
+
+Como o AIS exige uma conexão WebSocket persistente, ele **não roda em função
+serverless**. Por isso há um serviço Node à parte — o "coletor" — que mantém a
+conexão, acumula as embarcações na Baía de São Marcos e expõe o **mesmo**
+`/api/dados`:
+
+```bash
+# 1) gere uma chave grátis em https://aisstream.io (login GitHub)
+# 2) rode o coletor com a chave no ambiente (NÃO comite a chave):
+AISSTREAM_API_KEY=suachave npm run ais      # sobe em http://localhost:8787
+
+# 3) aponte o app para o coletor:
+VITE_API_URL=http://localhost:8787/api/dados npm run dev
+```
+
+Sem a variável `AISSTREAM_API_KEY`, o coletor continua funcionando e serve os
+dados **simulados** (o app nunca fica sem resposta). A resposta inclui um campo
+`fonte`: `"ais"` (navios reais), `"ais-aguardando"` (conectado, ainda sem navios)
+ou `"simulado"`.
+
+O que vem do AIS e o que é estimado:
+
+- **Medido pelo AIS:** nome, tipo da embarcação, posição, velocidade, dimensões, calado.
+- **Estimado/calculado** (o AIS não transmite): `tempoEspera` (a partir de
+  ancoragem/ETA), `tipoCarga` (heurística por tipo e nome), `cargaToneladas`
+  (via calado), `prioridade` e `indiceDinamico` (nosso algoritmo). Veja
+  `server/aisMapping.ts`.
+
+**Publicação:** o coletor precisa de um host que mantenha um processo Node de pé
+(Render, Railway, Fly.io, uma VM…). Suba o coletor lá, defina `AISSTREAM_API_KEY`
+e aponte o front-end (`VITE_API_URL`) para a URL pública dele. Os berços e o clima
+continuam vindo do gerador (não há feed público em tempo real para ocupação de
+berços — isso é dado interno da EMAP).
+
 ### Simulação ao vivo (opcional)
 
 No cabeçalho há o botão **"Simular ao vivo"**. Ao ligá-lo, o app pausa o consumo da
