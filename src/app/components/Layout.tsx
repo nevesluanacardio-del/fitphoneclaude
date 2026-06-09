@@ -1,12 +1,16 @@
 import { Outlet, NavLink } from "react-router";
-import { Anchor, BarChart3, Ship, Layers, Lightbulb } from "lucide-react";
+import { Anchor, BarChart3, Ship, Layers, Lightbulb, Radio } from "lucide-react";
 import { DadosProvider, useDadosOperacionais } from "../data/DadosContext";
 
 function StatusAtualizacao() {
-  const { ultimaAtualizacao, carregando, erro } = useDadosOperacionais();
+  const { ultimaAtualizacao, carregando, erro, simular, setSimular } = useDadosOperacionais();
 
-  const corPonto = erro ? "bg-amber-400" : "bg-emerald-400";
-  const rotulo = erro ? "Dados em cache" : "Atualizado em tempo real";
+  const corPonto = erro ? "bg-amber-400" : simular ? "bg-fuchsia-400" : "bg-emerald-400";
+  const rotulo = erro
+    ? "Dados em cache"
+    : simular
+      ? "Simulação ao vivo"
+      : "Atualizado em tempo real";
   const horario = ultimaAtualizacao
     ? ultimaAtualizacao.toLocaleString("pt-BR")
     : carregando
@@ -14,17 +18,33 @@ function StatusAtualizacao() {
       : "—";
 
   return (
-    <div className="text-right">
-      <p className="flex items-center justify-end gap-2 text-sm text-blue-200">
-        <span className="relative flex h-2 w-2">
-          {!erro && (
-            <span className={`absolute inline-flex h-full w-full animate-ping rounded-full ${corPonto} opacity-75`} />
-          )}
-          <span className={`relative inline-flex h-2 w-2 rounded-full ${corPonto}`} />
-        </span>
-        {rotulo}
-      </p>
-      <p className="font-semibold">{horario}</p>
+    <div className="flex items-center gap-4">
+      <button
+        type="button"
+        onClick={() => setSimular(!simular)}
+        aria-pressed={simular}
+        title={simular ? "Voltar a ler os dados dos CSVs" : "Variar os números automaticamente"}
+        className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+          simular
+            ? "border-fuchsia-300 bg-fuchsia-500/20 text-white hover:bg-fuchsia-500/30"
+            : "border-white/20 bg-white/10 text-blue-100 hover:bg-white/20"
+        }`}
+      >
+        <Radio className="h-4 w-4" />
+        {simular ? "Simulação ON" : "Simular ao vivo"}
+      </button>
+      <div className="text-right">
+        <p className="flex items-center justify-end gap-2 text-sm text-blue-200">
+          <span className="relative flex h-2 w-2">
+            {!erro && (
+              <span className={`absolute inline-flex h-full w-full animate-ping rounded-full ${corPonto} opacity-75`} />
+            )}
+            <span className={`relative inline-flex h-2 w-2 rounded-full ${corPonto}`} />
+          </span>
+          {rotulo}
+        </p>
+        <p className="font-semibold">{horario}</p>
+      </div>
     </div>
   );
 }

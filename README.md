@@ -76,3 +76,13 @@ Detalhes de implementação:
   os últimos dados válidos (semente em `mockData.ts`).
 - Intervalo de atualização: 5s por padrão. Pode ser ajustado com a variável de
   ambiente `VITE_POLL_INTERVAL` (em milissegundos), ex.: `VITE_POLL_INTERVAL=3000`.
+
+### Simulação ao vivo (opcional)
+
+No cabeçalho há o botão **"Simular ao vivo"**. Ao ligá-lo, os números passam a
+variar sozinhos a cada poucos segundos (random walk dentro de faixas plausíveis),
+sem precisar editar nenhum arquivo — ideal para apresentações. Ao desligar, o app
+volta a ler os CSVs reais.
+
+- `src/app/data/simulacao.ts` — gera as variações sobre a base atual.
+- Intervalo da simulação: 2,5s por padrão (`VITE_SIM_INTERVAL`, em ms).
