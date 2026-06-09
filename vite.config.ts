@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
+import { gerarDados } from './api/_lib/gerarDados'
 
 
 function figmaAssetResolver() {
@@ -16,9 +17,31 @@ function figmaAssetResolver() {
   }
 }
 
+// Serve a API (/api/dados) durante `vite dev` e `vite preview`, usando o mesmo
+// gerador que roda em produção (Vercel/Netlify). Assim a API funciona localmente
+// sem precisar de runtime serverless.
+function apiDevServer() {
+  const handle = (req: any, res: any, next: any) => {
+    const url = (req.url || '').split('?')[0]
+    if (url === '/api/dados') {
+      res.setHeader('Content-Type', 'application/json; charset=utf-8')
+      res.setHeader('Cache-Control', 'no-store')
+      res.end(JSON.stringify(gerarDados()))
+      return
+    }
+    next()
+  }
+  return {
+    name: 'api-dev-server',
+    configureServer(server: any) { server.middlewares.use(handle) },
+    configurePreviewServer(server: any) { server.middlewares.use(handle) },
+  }
+}
+
 export default defineConfig({
   plugins: [
     figmaAssetResolver(),
+    apiDevServer(),
     // The React and Tailwind plugins are both required for Make, even if
     // Tailwind is not being actively used – do not remove them
     react(),

@@ -1,7 +1,0 @@
-indicador,chave,valor,unidade
-Tempo Médio de Espera,tempoMedioEspera,8.4,horas
-Tamanho da Fila,tamanhoFila,7,navios
-Utilização dos Berços,utilizacaoBercos,75,%
-Navios em Atraso Crítico,naviosAtrasoCritico,2,navios
-Risco Climático,riscoClimatico,35,%
-Congestionamento Previsto,congestionamentoPrevisto,62,%

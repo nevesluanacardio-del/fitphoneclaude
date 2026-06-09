@@ -53,36 +53,49 @@ hosts, configure o servidor para servir `index.html` em todas as rotas
 - `/simulacao` — Simulação
 - `/recomendacao` — Recomendação
 
-## Dados em tempo real
+## Dados em tempo real (API própria)
 
-As telas leem os dados de arquivos CSV em `public/data/` e fazem *polling*
-automático, então a interface se atualiza sozinha conforme os arquivos mudam:
+O projeto inclui o **próprio backend** — uma API que serve os dados operacionais
+em JSON e já varia suavemente ao longo do tempo, então a interface se atualiza
+sozinha. Não é preciso nenhum serviço externo.
 
-- `public/data/navios.csv` — fila de navios
-- `public/data/bercos.csv` — berços
-- `public/data/indicadores.csv` — KPIs operacionais
+### Endpoint
 
-**Como ver atualizando:** edite qualquer um desses CSVs (localmente ou no host
-publicado) e salve — em poucos segundos o Dashboard, a Fila, os Berços e a
-Recomendação refletem os novos valores. O cabeçalho mostra um indicador "ao vivo"
-com o horário da última leitura.
+```
+GET /api/dados
+```
 
-Detalhes de implementação:
+Retorna `{ geradoEm, navios[], bercos[], indicadores }`. Os valores oscilam de
+forma suave e determinística no tempo (sem manter estado entre requisições — ideal
+para funções serverless), dando a sensação de operação ao vivo a cada *polling*.
 
-- `src/app/data/dataSource.ts` — busca e converte os CSVs (único ponto que conhece
-  o formato bruto; para trocar por uma API REST ou WebSocket no futuro, altere só aqui).
+A mesma rota funciona em **três ambientes**, sempre com o mesmo gerador
+(`api/_lib/gerarDados.ts`):
+
+- **`npm run dev` / `npm run preview`** — servida por um middleware do Vite
+  (`vite.config.ts` → `apiDevServer`).
+- **Vercel** — função serverless em `api/dados.ts` (zero-config).
+- **Netlify** — função em `netlify/functions/dados.ts`, exposta como `/api/dados`
+  via redirect no `netlify.toml`.
+
+A "base de dados" do backend fica em `api/_lib/baseDados.ts` — edite ali para mudar
+navios, berços e indicadores.
+
+### No front-end
+
+- `src/app/data/dataSource.ts` — consome `/api/dados` e converte o JSON para os
+  tipos da aplicação (único ponto que conhece o formato da API). Para apontar para
+  um backend externo, defina `VITE_API_URL`.
 - `src/app/data/DadosContext.tsx` — distribui os dados via React Context e faz o
-  polling (um único polling alimenta todas as páginas). Se o fetch falhar, mantém
-  os últimos dados válidos (semente em `mockData.ts`).
-- Intervalo de atualização: 5s por padrão. Pode ser ajustado com a variável de
-  ambiente `VITE_POLL_INTERVAL` (em milissegundos), ex.: `VITE_POLL_INTERVAL=3000`.
+  *polling* (um único polling alimenta todas as páginas). Se a API falhar, mantém
+  os últimos dados válidos (semente em `mockData.ts`) e sinaliza no cabeçalho.
+- Intervalo de *polling*: 5s por padrão (`VITE_POLL_INTERVAL`, em ms).
 
 ### Simulação ao vivo (opcional)
 
-No cabeçalho há o botão **"Simular ao vivo"**. Ao ligá-lo, os números passam a
-variar sozinhos a cada poucos segundos (random walk dentro de faixas plausíveis),
-sem precisar editar nenhum arquivo — ideal para apresentações. Ao desligar, o app
-volta a ler os CSVs reais.
+No cabeçalho há o botão **"Simular ao vivo"**. Ao ligá-lo, o app pausa o consumo da
+API e passa a variar os números localmente a cada poucos segundos (random walk),
+útil para demonstrações offline. Ao desligar, volta a consumir a API.
 
 - `src/app/data/simulacao.ts` — gera as variações sobre a base atual.
 - Intervalo da simulação: 2,5s por padrão (`VITE_SIM_INTERVAL`, em ms).

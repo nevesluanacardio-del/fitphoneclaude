@@ -1,8 +1,0 @@
-id,nome,tipoCarga,tempoEspera_h,prioridade,bercoCompativel,statusClimatico,tamanho_m,cargaToneladas,chegada,indiceDinamico
-N001,Atlântico Trader,Grãos,8.5,Alta,B1,Favorável,225,45000,2026-06-03T14:30,87.5
-N002,Container Express VII,Contêineres,12.2,Crítica,B2,Atenção,280,38000,2026-06-03T10:15,94.2
-N003,Petro Max,Combustíveis,4.8,Média,B3,Favorável,195,52000,2026-06-04T01:45,72.8
-N004,Marília Cargo,Multiuso,15.7,Alta,B4,Desfavorável,210,28000,2026-06-03T06:00,88.9
-N005,Cereal Star,Grãos,6.3,Média,B1,Favorável,240,51000,2026-06-03T18:20,76.4
-N006,Asia Connect II,Contêineres,9.1,Alta,B2,Favorável,295,42000,2026-06-03T13:50,83.7
-N007,Multi Carrier,Multiuso,3.2,Baixa,B4,Favorável,185,22000,2026-06-04T03:30,65.1
