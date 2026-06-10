@@ -15,7 +15,7 @@
 
 import http from "node:http";
 import WebSocket from "ws";
-import { gerarDados } from "../api/_lib/gerarDados";
+import { obterDados } from "../api/_lib/obterDados";
 import { construirFila, type VesselState } from "./aisMapping";
 
 const API_KEY = process.env.AISSTREAM_API_KEY;
@@ -114,16 +114,20 @@ function conectarAis() {
 }
 
 // ---- Servidor HTTP: /api/dados ----
-function montarResposta() {
+async function montarResposta() {
   const agora = Date.now();
-  const base = gerarDados(agora);
+  const base = await obterDados(agora); // dados + clima real
 
   // Sem chave ou ainda sem embarcações observadas → dados simulados.
   if (!API_KEY || vessels.size === 0) {
     return { ...base, fonte: API_KEY ? "ais-aguardando" : "simulado" };
   }
 
-  const navios = construirFila(vessels.values(), agora);
+  // Navios reais do AIS, com o status climático da baía (do clima real).
+  const navios = construirFila(vessels.values(), agora).map((n) => ({
+    ...n,
+    statusClimatico: base.clima.statusClimatico,
+  }));
   return {
     ...base,
     navios,
@@ -142,7 +146,12 @@ const server = http.createServer((req, res) => {
   if (url === "/api/dados") {
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     res.setHeader("Cache-Control", "no-store");
-    res.end(JSON.stringify(montarResposta()));
+    montarResposta()
+      .then((r) => res.end(JSON.stringify(r)))
+      .catch((e) => {
+        res.statusCode = 500;
+        res.end(JSON.stringify({ erro: String(e) }));
+      });
     return;
   }
   res.statusCode = 404;

@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import { gerarDados } from './api/_lib/gerarDados'
+import { obterDados } from './api/_lib/obterDados'
 
 
 function figmaAssetResolver() {
@@ -21,12 +21,12 @@ function figmaAssetResolver() {
 // gerador que roda em produção (Vercel/Netlify). Assim a API funciona localmente
 // sem precisar de runtime serverless.
 function apiDevServer() {
-  const handle = (req: any, res: any, next: any) => {
+  const handle = async (req: any, res: any, next: any) => {
     const url = (req.url || '').split('?')[0]
     if (url === '/api/dados') {
       res.setHeader('Content-Type', 'application/json; charset=utf-8')
       res.setHeader('Cache-Control', 'no-store')
-      res.end(JSON.stringify(gerarDados()))
+      res.end(JSON.stringify(await obterDados()))
       return
     }
     next()

@@ -1,7 +1,7 @@
 // Endpoint da API (Netlify Function): GET /api/dados (via redirect)
-// Retorna os dados operacionais atuais (com variação suave no tempo).
+// Retorna os dados operacionais atuais (variação no tempo) + clima real.
 
-import { gerarDados } from "../../api/_lib/gerarDados";
+import { obterDados } from "../../api/_lib/obterDados";
 
 export const handler = async () => ({
   statusCode: 200,
@@ -10,5 +10,5 @@ export const handler = async () => ({
     "Cache-Control": "no-store",
     "Access-Control-Allow-Origin": "*",
   },
-  body: JSON.stringify(gerarDados()),
+  body: JSON.stringify(await obterDados()),
 });

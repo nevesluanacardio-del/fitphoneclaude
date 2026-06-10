@@ -1,11 +1,11 @@
 // Endpoint da API (Vercel Serverless Function): GET /api/dados
-// Retorna os dados operacionais atuais (com variação suave no tempo).
+// Retorna os dados operacionais atuais (variação no tempo) + clima real.
 
-import { gerarDados } from "./_lib/gerarDados";
+import { obterDados } from "./_lib/obterDados";
 
-export default function handler(_req: unknown, res: any) {
+export default async function handler(_req: unknown, res: any) {
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.status(200).send(JSON.stringify(gerarDados()));
+  res.status(200).send(JSON.stringify(await obterDados()));
 }
