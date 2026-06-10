@@ -10,7 +10,7 @@ import {
   type NavioDTO,
   type BercoDTO,
   type IndicadoresDTO,
-} from "./baseDados";
+} from "./baseDados.js";
 
 export interface DadosResponse {
   geradoEm: string;

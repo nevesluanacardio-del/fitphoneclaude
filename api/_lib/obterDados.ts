@@ -2,8 +2,8 @@
 // (Open-Meteo). É o ponto único usado por todos os ambientes (Vite dev/preview,
 // Vercel, Netlify e o coletor AIS), garantindo a mesma resposta em todos.
 
-import { gerarDados, type DadosResponse } from "./gerarDados";
-import { obterClima, aplicarClima, type Clima } from "./clima";
+import { gerarDados, type DadosResponse } from "./gerarDados.js";
+import { obterClima, aplicarClima, type Clima } from "./clima.js";
 
 export interface DadosComClima extends DadosResponse {
   clima: Clima;

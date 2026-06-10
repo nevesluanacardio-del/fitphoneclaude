@@ -3,7 +3,7 @@
 // Porto do Itaqui e deriva statusClimatico / riscoClimatico. O resultado é
 // cacheado por alguns minutos para não exceder limites e não pesar no polling.
 
-import type { IndicadoresDTO, NavioDTO } from "./baseDados";
+import type { IndicadoresDTO, NavioDTO } from "./baseDados.js";
 
 const ITAQUI = { lat: -2.575, lon: -44.371 };
 const TTL_MS = 10 * 60 * 1000; // 10 min
