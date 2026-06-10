@@ -23,6 +23,7 @@ export interface Berco {
   previsaoLiberacao?: Date;
   capacidadeMaxima: number; // em toneladas
   utilizacao: number; // percentual
+  operacaoInterrompida?: boolean; // operação parada por clima desfavorável
 }
 
 export interface IndicadorOperacional {

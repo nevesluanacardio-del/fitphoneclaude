@@ -25,6 +25,7 @@ export interface BercoDTO {
   previsaoLiberacao?: string;
   capacidadeMaxima: number;
   utilizacao: number;
+  operacaoInterrompida?: boolean; // operação parada por clima desfavorável
 }
 
 export interface IndicadoresDTO {

@@ -3,7 +3,7 @@
 // Porto do Itaqui e deriva statusClimatico / riscoClimatico. O resultado é
 // cacheado por alguns minutos para não exceder limites e não pesar no polling.
 
-import type { IndicadoresDTO, NavioDTO } from "./baseDados.js";
+import type { IndicadoresDTO, NavioDTO, BercoDTO } from "./baseDados.js";
 
 const ITAQUI = { lat: -2.575, lon: -44.371 };
 const TTL_MS = 10 * 60 * 1000; // 10 min
@@ -97,16 +97,23 @@ export async function obterClima(): Promise<Clima> {
   }
 }
 
-// Aplica o clima real sobre um conjunto de dados: ajusta o KPI de risco e o
-// status climático de todos os navios (condição compartilhada da baía).
+// Aplica o clima real sobre um conjunto de dados: ajusta o KPI de risco, o
+// status climático de todos os navios e — quando o clima está DESFAVORÁVEL —
+// INTERROMPE a operação dos berços ocupados (condições climáticas podem parar
+// operações, conforme o cenário do desafio).
 export function aplicarClima<
-  T extends { navios: NavioDTO[]; indicadores: IndicadoresDTO }
+  T extends { navios: NavioDTO[]; bercos: BercoDTO[]; indicadores: IndicadoresDTO }
 >(dados: T, clima: Clima): T {
+  const interrompe = clima.statusClimatico === "Desfavorável";
   return {
     ...dados,
     navios: dados.navios.map((n) => ({
       ...n,
       statusClimatico: clima.statusClimatico,
+    })),
+    bercos: dados.bercos.map((b) => ({
+      ...b,
+      operacaoInterrompida: interrompe && b.status === "Ocupado",
     })),
     indicadores: { ...dados.indicadores, riscoClimatico: clima.riscoClimatico },
   };

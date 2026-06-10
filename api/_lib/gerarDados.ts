@@ -106,6 +106,12 @@ export function gerarDados(now: number = Date.now()): DadosResponse {
 
   const bercos = gerarBercos(now, t, navios);
 
+  // Navios que estão ATRACADOS saem da fila de espera (não aparecem em ambos).
+  const atracados = new Set(
+    bercos.filter((b) => b.status === "Ocupado" && b.navioAtual).map((b) => b.navioAtual)
+  );
+  const fila = navios.filter((n) => !atracados.has(n.nome));
+
   // KPI de utilização derivado dos berços, mantendo coerência entre as telas.
   const ativos = bercos.filter((b) => b.status !== "Manutenção");
   const utilizacaoBercos = ativos.length
@@ -114,12 +120,12 @@ export function gerarDados(now: number = Date.now()): DadosResponse {
 
   const indicadores: IndicadoresDTO = {
     tempoMedioEspera: round1(clamp(baseIndicadores.tempoMedioEspera + osc(t, 40, 0, 1.8), 1, 24)),
-    tamanhoFila: Math.round(clamp(baseIndicadores.tamanhoFila + osc(t, 70, 1, 1.5), 0, 20)),
+    tamanhoFila: fila.length, // navios efetivamente aguardando atracação
     utilizacaoBercos,
-    naviosAtrasoCritico: Math.round(clamp(baseIndicadores.naviosAtrasoCritico + osc(t, 90, 2, 1.2), 0, 10)),
+    naviosAtrasoCritico: fila.filter((n) => n.prioridade === "Crítica").length,
     riscoClimatico: Math.round(clamp(baseIndicadores.riscoClimatico + osc(t, 55, 0.5, 12), 0, 100)),
     congestionamentoPrevisto: Math.round(clamp(baseIndicadores.congestionamentoPrevisto + osc(t, 48, 3, 12), 0, 100)),
   };
 
-  return { geradoEm: new Date(now).toISOString(), navios, bercos, indicadores };
+  return { geradoEm: new Date(now).toISOString(), navios: fila, bercos, indicadores };
 }

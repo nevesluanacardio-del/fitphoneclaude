@@ -5,48 +5,47 @@ import { Ship, Clock, TrendingUp, AlertTriangle, CheckCircle, Anchor, Calendar, 
 export function Recomendacao() {
   const { navios, bercos } = useDadosOperacionais();
 
-  // Ordenar navios por índice dinâmico
+  // Ordenar navios da fila por índice dinâmico
   const sortedNavios = [...navios].sort((a, b) => (b.indiceDinamico || 0) - (a.indiceDinamico || 0));
-
-  // Próximo navio recomendado
   const nextShip = sortedNavios[0];
+
+  // Fila vazia: todos os navios já estão atracados.
+  if (!nextShip) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-3xl font-bold text-slate-900">Recomendação Operacional</h2>
+          <p className="text-slate-600 mt-1">Sugestão inteligente para as próximas 24 horas</p>
+        </div>
+        <div className="bg-white rounded-lg border border-slate-200 p-10 text-center">
+          <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
+          <p className="text-lg font-semibold text-slate-900">Fila vazia</p>
+          <p className="text-slate-600">Nenhum navio aguardando atracação no momento — os berços estão atendendo toda a demanda atual.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Berço livre correspondente
   const availableBerth = bercos.find(
     (b) => b.status === "Livre" && nextShip.bercoCompativel.includes(b.id)
   );
 
-  // Timeline de próximas atracações (próximas 24h)
-  const timeline = [
-    {
-      navio: sortedNavios[0],
-      berco: "B2",
-      hora: "08:30",
-      status: "Recomendado",
-      justificativa: "IDA mais alto, berço livre, condições favoráveis",
-    },
-    {
-      navio: sortedNavios[1],
-      berco: "B4",
-      hora: "11:20",
-      status: "Previsto",
-      justificativa: "Aguarda liberação de B4, alta prioridade",
-    },
-    {
-      navio: sortedNavios[2],
-      berco: "B1",
-      hora: "14:30",
-      status: "Previsto",
-      justificativa: "Aguarda liberação de B1, berço compatível",
-    },
-    {
-      navio: sortedNavios[3],
-      berco: "B3",
-      hora: "18:45",
-      status: "Previsto",
-      justificativa: "Aguarda liberação de B3, condições climáticas",
-    },
+  // Timeline de próximas atracações (sequência otimizada por IDA)
+  const horarios = ["08:30", "11:20", "14:30", "18:45"];
+  const justificativas = [
+    "Maior IDA, prioridade alta e berço compatível",
+    "Alta prioridade, aguardando liberação de berço",
+    "Berço compatível em processo de liberação",
+    "Sequenciado conforme o índice dinâmico",
   ];
+  const timeline = sortedNavios.slice(0, 4).map((navio, i) => ({
+    navio,
+    berco: navio.bercoCompativel[0] ?? "—",
+    hora: horarios[i],
+    status: i === 0 ? "Recomendado" : "Previsto",
+    justificativa: justificativas[i],
+  }));
 
   const getImpactColor = (value: number, reverse = false) => {
     if (reverse) {

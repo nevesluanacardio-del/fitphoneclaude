@@ -123,6 +123,16 @@ export function Bercos() {
 
             {/* Body */}
             <div className="p-6 space-y-4">
+              {/* Operação interrompida por clima */}
+              {berco.operacaoInterrompida && (
+                <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                  <div className="flex items-center gap-2 text-red-700">
+                    <AlertCircle className="w-5 h-5" />
+                    <p className="text-sm font-semibold">Operação interrompida por condições climáticas desfavoráveis</p>
+                  </div>
+                </div>
+              )}
+
               {/* Current Ship */}
               {berco.navioAtual && (
                 <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">

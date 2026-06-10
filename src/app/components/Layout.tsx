@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from "react-router";
-import { Anchor, BarChart3, Ship, Layers, Lightbulb, Radio } from "lucide-react";
+import { Anchor, BarChart3, Ship, Layers, Lightbulb, Radio, Sigma } from "lucide-react";
 import { DadosProvider, useDadosOperacionais } from "../data/DadosContext";
 
 function StatusAtualizacao() {
@@ -123,6 +123,20 @@ function LayoutInterno() {
             >
               <Ship className="w-4 h-4" />
               <span className="font-medium">Fila de Navios</span>
+            </NavLink>
+
+            <NavLink
+              to="/modelo"
+              className={({ isActive }) =>
+                `flex items-center gap-2 px-4 py-3 border-b-2 transition-colors ${
+                  isActive
+                    ? "border-blue-600 text-blue-600"
+                    : "border-transparent text-slate-600 hover:text-blue-600 hover:border-slate-300"
+                }`
+              }
+            >
+              <Sigma className="w-4 h-4" />
+              <span className="font-medium">Modelo de Fila</span>
             </NavLink>
 
             <NavLink
