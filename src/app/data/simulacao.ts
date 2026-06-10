@@ -4,9 +4,59 @@
 // base continua sendo o que veio dos CSVs.
 
 import type { DadosOperacionais } from "./dataSource";
+import type { Berco } from "./mockData";
+
+const NAVIO_POOL = [
+  "Soja Express", "Oil Tanker 5", "General Cargo III", "MSC Itaqui",
+  "Cereal Star", "Atlântico Trader", "Petro Max", "Asia Connect II",
+  "Marília Cargo", "Iron Carrier", "Pan Ocean", "Bulk Voyager",
+];
 
 function clamp(v: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, v));
+}
+
+function escolha<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+// Transição ocasional de status do berço (atraca/desatraca/manutenção),
+// para que a simulação também mexa nos berços — não só na ocupação.
+function transicaoBerco(b: Berco): Berco {
+  const r = Math.random();
+  if (b.status === "Ocupado") {
+    if (r < 0.12) {
+      // desatraca → livre
+      return {
+        id: b.id, nome: b.nome, tipo: b.tipo,
+        capacidadeMaxima: b.capacidadeMaxima, status: "Livre", utilizacao: 0,
+      };
+    }
+    // segue ocupado, avançando ocupação
+    return {
+      ...b,
+      utilizacao: Math.round(clamp(b.utilizacao + drift(4), 30, 100)),
+      tempoOcupacao: round1(clamp((b.tempoOcupacao ?? 0) + 0.4, 0, 72)),
+    };
+  }
+  if (b.status === "Livre") {
+    if (r < 0.18) {
+      // atraca um novo navio
+      return {
+        ...b,
+        status: "Ocupado",
+        navioAtual: escolha(NAVIO_POOL),
+        tempoOcupacao: round1(0.5 + Math.random() * 2),
+        previsaoLiberacao: new Date(Date.now() + (4 + Math.random() * 12) * 3_600_000),
+        utilizacao: Math.round(45 + Math.random() * 30),
+      };
+    }
+    if (r > 0.97) return { ...b, status: "Manutenção", utilizacao: 0 };
+    return b;
+  }
+  // Manutenção → volta a ficar livre eventualmente
+  if (r < 0.15) return { ...b, status: "Livre" };
+  return b;
 }
 
 // Variação contínua: passo aleatório entre -amp e +amp.
@@ -33,18 +83,7 @@ export function simulateStep(prev: DadosOperacionais): DadosOperacionais {
     ),
   }));
 
-  const bercos = prev.bercos.map((b) =>
-    b.status === "Ocupado"
-      ? {
-          ...b,
-          utilizacao: Math.round(clamp(b.utilizacao + drift(3), 0, 100)),
-          tempoOcupacao:
-            b.tempoOcupacao !== undefined
-              ? round1(clamp(b.tempoOcupacao + 0.05, 0, 72))
-              : b.tempoOcupacao,
-        }
-      : b
-  );
+  const bercos = prev.bercos.map(transicaoBerco);
 
   // Utilização média dos berços mantém o KPI coerente com a página Berços.
   const ocupados = bercos.filter((b) => b.status !== "Manutenção");
