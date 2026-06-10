@@ -13,6 +13,7 @@
 // Sem a chave, o serviço continua funcionando com os dados simulados, então o
 // app nunca fica sem resposta.
 
+import "dotenv/config"; // carrega .env automaticamente (ignorado se não existir)
 import http from "node:http";
 import WebSocket from "ws";
 import { obterDados } from "../api/_lib/obterDados";

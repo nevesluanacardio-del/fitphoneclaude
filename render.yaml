@@ -1,0 +1,15 @@
+# Blueprint do Render para o coletor AIS (server/aisCollector.ts).
+# No Render: New > Blueprint > aponte para este repositório.
+# A chave do aisstream NÃO fica aqui — "sync: false" faz o Render pedir o valor
+# no painel na hora de criar (e ele guarda em segredo, fora do Git).
+services:
+  - type: web
+    name: portoflow-ais
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm run ais
+    healthCheckPath: /api/dados
+    envVars:
+      - key: AISSTREAM_API_KEY
+        sync: false

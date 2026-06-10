@@ -105,10 +105,11 @@ conexão, acumula as embarcações na Baía de São Marcos e expõe o **mesmo**
 
 ```bash
 # 1) gere uma chave grátis em https://aisstream.io (login GitHub)
-# 2) rode o coletor com a chave no ambiente (NÃO comite a chave):
-AISSTREAM_API_KEY=suachave npm run ais      # sobe em http://localhost:8787
-
-# 3) aponte o app para o coletor:
+# 2) crie seu .env (ignorado pelo Git) e preencha a chave:
+cp .env.example .env        # edite e defina AISSTREAM_API_KEY=...
+# 3) rode o coletor (carrega o .env automaticamente):
+npm run ais                 # sobe em http://localhost:8787
+# 4) aponte o app para o coletor:
 VITE_API_URL=http://localhost:8787/api/dados npm run dev
 ```
 
@@ -125,11 +126,14 @@ O que vem do AIS e o que é estimado:
   (via calado), `prioridade` e `indiceDinamico` (nosso algoritmo). Veja
   `server/aisMapping.ts`.
 
-**Publicação:** o coletor precisa de um host que mantenha um processo Node de pé
-(Render, Railway, Fly.io, uma VM…). Suba o coletor lá, defina `AISSTREAM_API_KEY`
-e aponte o front-end (`VITE_API_URL`) para a URL pública dele. Os berços e o clima
-continuam vindo do gerador (não há feed público em tempo real para ocupação de
-berços — isso é dado interno da EMAP).
+**Publicação (Render):** o coletor precisa de um host que mantenha um processo
+Node de pé (Render, Railway, Fly.io, uma VM…). O repositório já traz um blueprint
+`render.yaml` — no Render, **New → Blueprint**, aponte para este repo, e ele cria o
+serviço com `npm install` / `npm run ais`, pedindo apenas o valor de
+`AISSTREAM_API_KEY` (que fica guardado como segredo, fora do Git). Depois aponte o
+front-end (`VITE_API_URL`) para a URL pública do serviço. Os berços continuam vindo
+do gerador (não há feed público em tempo real para ocupação de berços — isso é dado
+interno da EMAP).
 
 ### Simulação ao vivo (opcional)
 
