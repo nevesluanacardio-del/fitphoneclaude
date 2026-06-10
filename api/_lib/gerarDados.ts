@@ -11,6 +11,7 @@ import {
   type BercoDTO,
   type IndicadoresDTO,
 } from "./baseDados.js";
+import { alocarNavios } from "./alocacao.js";
 
 export interface DadosResponse {
   geradoEm: string;
@@ -41,46 +42,51 @@ const CICLO = [
 ];
 
 // Gera o estado dinâmico de cada berço em função do tempo: cada berço cicla
-// entre Ocupado → Livre → (às vezes) Manutenção, trocando de navio a cada ciclo.
-function gerarBercos(now: number, t: number): BercoDTO[] {
-  return baseBercos.map((b, i) => {
+// entre Ocupado → Livre → (às vezes) Manutenção. Os navios que atracam são
+// alocados a partir da fila (navios), respeitando a prioridade de cada um.
+function gerarBercos(now: number, t: number, navios: NavioDTO[]): BercoDTO[] {
+  // 1) Plano de ocupação de cada berço neste instante.
+  const planos = baseBercos.map((b, i) => {
+    const c = CICLO[i];
+    const fase = (t % c.periodo) / c.periodo; // 0..1 dentro do ciclo
+    if (c.manut > 0 && fase >= 1 - c.manut) {
+      return { b, i, status: "Manutenção" as const, progresso: 0 };
+    }
+    if (fase < c.ocup) {
+      return { b, i, status: "Ocupado" as const, progresso: fase / c.ocup };
+    }
+    return { b, i, status: "Livre" as const, progresso: 0 };
+  });
+
+  // 2) Aloca navios da fila aos berços ocupados, por prioridade.
+  const ocupados = planos.filter((p) => p.status === "Ocupado").map((p) => p.b.id);
+  const alocacao = alocarNavios(navios, ocupados);
+
+  // 3) Monta cada berço.
+  return planos.map(({ b, i, status, progresso }) => {
     const base = {
       id: b.id,
       nome: b.nome,
       tipo: b.tipo,
       capacidadeMaxima: b.capacidadeMaxima,
     };
+    if (status !== "Ocupado") {
+      return { ...base, status, utilizacao: 0 };
+    }
     const c = CICLO[i];
-    const ciclos = Math.floor(t / c.periodo);
-    const fase = (t % c.periodo) / c.periodo; // 0..1 dentro do ciclo
-    const inicioManut = 1 - c.manut;
-
-    // Janela final do ciclo: manutenção (quando aplicável).
-    if (c.manut > 0 && fase >= inicioManut) {
-      return { ...base, status: "Manutenção" as const, utilizacao: 0 };
-    }
-
-    // Primeira parte do ciclo: ocupado por um navio.
-    if (fase < c.ocup) {
-      const progresso = fase / c.ocup; // 0..1 ao longo da ocupação
-      const navioAtual = NAVIO_POOL[(ciclos + i * 5) % NAVIO_POOL.length];
-      const tempoOcupacao = round1(progresso * c.horasMax);
-      const horasRestantes = (1 - progresso) * c.horasMax;
-      const utilizacao = Math.round(
-        clamp(50 + progresso * 40 + osc(t, 7, i, 8), 30, 100)
-      );
-      return {
-        ...base,
-        status: "Ocupado" as const,
-        navioAtual,
-        tempoOcupacao,
-        previsaoLiberacao: new Date(now + horasRestantes * 3_600_000).toISOString(),
-        utilizacao,
-      };
-    }
-
-    // Restante: berço livre, disponível para atracação.
-    return { ...base, status: "Livre" as const, utilizacao: 0 };
+    const navio = alocacao.get(b.id);
+    // Sem navio compatível na fila → mostra um navio genérico do pool.
+    const navioAtual =
+      navio?.nome ?? NAVIO_POOL[(Math.floor(t / c.periodo) + i * 5) % NAVIO_POOL.length];
+    const horasRestantes = (1 - progresso) * c.horasMax;
+    return {
+      ...base,
+      status,
+      navioAtual,
+      tempoOcupacao: round1(progresso * c.horasMax),
+      previsaoLiberacao: new Date(now + horasRestantes * 3_600_000).toISOString(),
+      utilizacao: Math.round(clamp(50 + progresso * 40 + osc(t, 7, i, 8), 30, 100)),
+    };
   });
 }
 
@@ -98,7 +104,7 @@ export function gerarDados(now: number = Date.now()): DadosResponse {
     indiceDinamico: round1(clamp(n.indiceDinamico + osc(t, 30, i * 0.7, 4), 0, 100)),
   }));
 
-  const bercos = gerarBercos(now, t);
+  const bercos = gerarBercos(now, t, navios);
 
   // KPI de utilização derivado dos berços, mantendo coerência entre as telas.
   const ativos = bercos.filter((b) => b.status !== "Manutenção");

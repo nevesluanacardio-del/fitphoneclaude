@@ -30,6 +30,14 @@ export function Home() {
 
   const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"];
 
+  // Tendências dinâmicas vs. referência do dia anterior.
+  const ESPERA_ONTEM = 9.5;
+  const UTIL_ONTEM = 71;
+  const esperaDeltaPct =
+    ((indicadores.tempoMedioEspera - ESPERA_ONTEM) / ESPERA_ONTEM) * 100;
+  const utilDeltaPct =
+    ((indicadores.utilizacaoBercos - UTIL_ONTEM) / UTIL_ONTEM) * 100;
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -50,8 +58,8 @@ export function Home() {
           value={`${indicadores.tempoMedioEspera}h`}
           icon={Clock}
           color="blue"
-          trend="down"
-          trendValue="12% vs ontem"
+          trend={esperaDeltaPct <= 0 ? "down" : "up"}
+          trendValue={`${Math.abs(esperaDeltaPct).toFixed(0)}% vs ontem`}
         />
         <MetricCard
           title="Navios na Fila"
@@ -64,8 +72,8 @@ export function Home() {
           value={`${indicadores.utilizacaoBercos}%`}
           icon={Activity}
           color="green"
-          trend="up"
-          trendValue="5%"
+          trend={utilDeltaPct >= 0 ? "up" : "down"}
+          trendValue={`${Math.abs(utilDeltaPct).toFixed(0)}%`}
         />
         <MetricCard
           title="Atraso Crítico"
