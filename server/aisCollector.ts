@@ -115,9 +115,9 @@ function conectarAis() {
 }
 
 // ---- Servidor HTTP: /api/dados ----
-async function montarResposta() {
+async function montarResposta(aceleracao = 1) {
   const agora = Date.now();
-  const base = await obterDados(agora); // dados + clima real
+  const base = await obterDados(agora, aceleracao); // dados + clima real
 
   // Sem chave ou ainda sem embarcações observadas → dados simulados.
   if (!API_KEY || vessels.size === 0) {
@@ -143,11 +143,12 @@ async function montarResposta() {
 
 const server = http.createServer((req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  const url = (req.url || "").split("?")[0];
-  if (url === "/api/dados") {
+  const [path, query] = (req.url || "").split("?");
+  if (path === "/api/dados") {
+    const acel = Number(new URLSearchParams(query || "").get("aceleracao")) || 1;
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     res.setHeader("Cache-Control", "no-store");
-    montarResposta()
+    montarResposta(acel)
       .then((r) => res.end(JSON.stringify(r)))
       .catch((e) => {
         res.statusCode = 500;

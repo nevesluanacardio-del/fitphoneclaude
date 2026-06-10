@@ -65,9 +65,17 @@ sozinha. Não é preciso nenhum serviço externo.
 GET /api/dados
 ```
 
-Retorna `{ geradoEm, navios[], bercos[], indicadores }`. Os valores oscilam de
-forma suave e determinística no tempo (sem manter estado entre requisições — ideal
-para funções serverless), dando a sensação de operação ao vivo a cada *polling*.
+Retorna `{ geradoEm, navios[], bercos[], indicadores, clima }`. O estado é o
+**snapshot de uma simulação M/G/4 ao vivo** (`api/_lib/gerarDados.ts`): chegadas de
+Poisson por tipo de carga, atendimento exponencial por berço, prioridade não
+preemptiva e compatibilidade de berço. A simulação é semeada (determinística por
+semente) e o estado no instante `now` é obtido reproduzindo os eventos até o tempo
+simulado correspondente — por isso é **estocástica e sem estado** entre requisições
+(ideal para funções serverless). A cada *polling* o sistema evolui: navios chegam,
+atracam (saindo da fila) e liberam berços.
+
+`GET /api/dados?aceleracao=N` adianta o relógio da simulação (fast-forward) — é o
+que o botão **Acelerar** no cabeçalho usa.
 
 A mesma rota funciona em **três ambientes**, sempre com o mesmo gerador
 (`api/_lib/gerarDados.ts`):
@@ -89,7 +97,16 @@ navios, berços e indicadores.
 - `src/app/data/DadosContext.tsx` — distribui os dados via React Context e faz o
   *polling* (um único polling alimenta todas as páginas). Se a API falhar, mantém
   os últimos dados válidos (semente em `mockData.ts`) e sinaliza no cabeçalho.
-- Intervalo de *polling*: 5s por padrão (`VITE_POLL_INTERVAL`, em ms).
+- Intervalo de *polling*: 5s por padrão (`VITE_POLL_INTERVAL`, em ms). O botão
+  **Acelerar** faz fast-forward (fator `VITE_ACELERACAO`, padrão 8).
+
+### Modelo de fila e simulação de políticas
+
+Além do dashboard ao vivo, há a aba **Modelo de Fila** (parâmetros analíticos
+λ, μ, ρ, M/M/1 por tipo e M/M/c via Erlang-C) e a aba **Simulação**, que roda uma
+**Simulação de Eventos Discretos** (`src/app/lib/filas/`) comparando 4 políticas
+(FIFO, Prioridade Fixa, Fila por Tipo, Índice Dinâmico) com Wq, Lq, ρ e custo
+ponderado por prioridade. Os números dessas telas são **calculados**, não fixos.
 
 ### Navios reais via AIS (aisstream.io)
 

@@ -22,11 +22,12 @@ function figmaAssetResolver() {
 // sem precisar de runtime serverless.
 function apiDevServer() {
   const handle = async (req: any, res: any, next: any) => {
-    const url = (req.url || '').split('?')[0]
-    if (url === '/api/dados') {
+    const [path, query] = (req.url || '').split('?')
+    if (path === '/api/dados') {
+      const acel = Number(new URLSearchParams(query || '').get('aceleracao')) || 1
       res.setHeader('Content-Type', 'application/json; charset=utf-8')
       res.setHeader('Cache-Control', 'no-store')
-      res.end(JSON.stringify(await obterDados()))
+      res.end(JSON.stringify(await obterDados(Date.now(), acel)))
       return
     }
     next()

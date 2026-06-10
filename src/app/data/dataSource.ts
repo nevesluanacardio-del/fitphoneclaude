@@ -35,9 +35,13 @@ interface DadosJson {
   indicadores: IndicadorOperacional;
 }
 
-export async function fetchDadosOperacionais(): Promise<DadosOperacionais> {
+export async function fetchDadosOperacionais(
+  aceleracao = 1
+): Promise<DadosOperacionais> {
   // cache: "no-store" garante valores atuais a cada polling.
-  const res = await fetch(API_URL, { cache: "no-store" });
+  const sep = API_URL.includes("?") ? "&" : "?";
+  const url = aceleracao > 1 ? `${API_URL}${sep}aceleracao=${aceleracao}` : API_URL;
+  const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Falha ao buscar dados: HTTP ${res.status}`);
   }
