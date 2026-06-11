@@ -1,0 +1,19 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Expõe a função como /api/dados (mesma rota do Vercel e do dev local)
+[[redirects]]
+  from = "/api/dados"
+  to = "/.netlify/functions/dados"
+  status = 200
+
+# SPA fallback so client-side routes (/, /bercos, /fila, ...) work on reload
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
