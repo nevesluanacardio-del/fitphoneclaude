@@ -14,6 +14,7 @@ import {
   type BercoDTO,
   type IndicadoresDTO,
 } from "./baseDados.js";
+import { calcularIDA } from "./ida.js";
 
 export interface DadosResponse {
   geradoEm: string;
@@ -26,7 +27,7 @@ type TipoCarga = NavioDTO["tipoCarga"];
 type Prioridade = NavioDTO["prioridade"];
 
 const TIPOS: TipoCarga[] = ["Grãos", "Contêineres", "Combustíveis", "Multiuso"];
-const SERVICO_H: Record<TipoCarga, number> = { Grãos: 16, Contêineres: 9, Combustíveis: 20, Multiuso: 12 };
+const SERVICO_H: Record<TipoCarga, number> = { Grãos: 18, Contêineres: 12, Combustíveis: 10, Multiuso: 8 };
 const RHO: Record<TipoCarga, number> = { Grãos: 0.74, Contêineres: 0.80, Combustíveis: 0.68, Multiuso: 0.58 };
 // Berços compatíveis por tipo. B4 é o berço flexível; Multiuso pode usar também
 // B1/B2 quando livres (evita starvation de quem só teria um berço).
@@ -193,23 +194,25 @@ export function gerarDados(now: number = Date.now(), aceleracao = 1): DadosRespo
     };
   });
 
-  // Fila de espera (clientes) — navios aguardando, ordenados por índice dinâmico.
+  // Fila de espera (clientes) — navios aguardando, ordenados pelo IDA multicritério.
   const navios: NavioDTO[] = snap.esperando
     .map((n) => {
       const espera = T - n.chegada;
-      return {
+      const navio: NavioDTO = {
         id: `N${String(n.id).padStart(4, "0")}`,
         nome: nomeDe(n),
         tipoCarga: n.tipo,
         tempoEspera: round1(espera),
         prioridade: n.prioridade,
         bercoCompativel: n.bercos,
-        statusClimatico: "Favorável" as const,
+        statusClimatico: "Favorável",
         tamanho: n.tam,
         cargaToneladas: n.carga,
         chegada: new Date(now - espera * 3_600_000).toISOString(),
-        indiceDinamico: round1(clamp(40 + 2 * espera + BONUS_PRIO[n.prioridade], 0, 100)),
+        indiceDinamico: 0,
       };
+      navio.indiceDinamico = calcularIDA(navio); // multicritério (clima finalizado em obterDados)
+      return navio;
     })
     .sort((a, b) => b.indiceDinamico - a.indiceDinamico);
 

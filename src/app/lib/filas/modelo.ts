@@ -13,10 +13,10 @@ export type Cenario = "normal" | "pico";
 
 // Tempo médio de operação (atendimento) por tipo de carga, em horas → define μ.
 export const SERVICO_H: Record<TipoCarga, number> = {
-  Grãos: 16,
-  Contêineres: 9,
-  Combustíveis: 20,
-  Multiuso: 12,
+  Grãos: 18,
+  Contêineres: 12,
+  Combustíveis: 10,
+  Multiuso: 8,
 };
 
 // Berço dedicado a cada tipo de carga (servidores especializados).

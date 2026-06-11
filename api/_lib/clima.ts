@@ -4,6 +4,7 @@
 // cacheado por alguns minutos para não exceder limites e não pesar no polling.
 
 import type { IndicadoresDTO, NavioDTO, BercoDTO } from "./baseDados.js";
+import { calcularIDA } from "./ida.js";
 
 const ITAQUI = { lat: -2.575, lon: -44.371 };
 const TTL_MS = 10 * 60 * 1000; // 10 min
@@ -107,10 +108,11 @@ export function aplicarClima<
   const interrompe = clima.statusClimatico === "Desfavorável";
   return {
     ...dados,
-    navios: dados.navios.map((n) => ({
-      ...n,
-      statusClimatico: clima.statusClimatico,
-    })),
+    navios: dados.navios.map((n) => {
+      const comClima = { ...n, statusClimatico: clima.statusClimatico };
+      // Recalcula o IDA já com o fator climático real incluído.
+      return { ...comClima, indiceDinamico: calcularIDA(comClima) };
+    }),
     bercos: dados.bercos.map((b) => ({
       ...b,
       operacaoInterrompida: interrompe && b.status === "Ocupado",
