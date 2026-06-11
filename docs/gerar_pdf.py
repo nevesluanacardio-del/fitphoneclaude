@@ -60,7 +60,7 @@ src/app/
 <h2>Etapa 4 — Processos Estocásticos</h2>
 <ul>
 <li><b>Chegadas aleatórias:</b> processo de Poisson (intervalos exponenciais) no simulador ao vivo e no DES; ou AIS real (aisstream) quando configurado.</li>
-<li><b>Tempos de atendimento variáveis:</b> exponenciais com μ por tipo (Grãos 16h, Contêineres 9h, Combustíveis 20h, Multiuso 12h).</li>
+<li><b>Tempos de atendimento variáveis:</b> exponenciais com μ por tipo (Grãos 18h, Contêineres 12h, Combustíveis 10h, Multiuso 8h).</li>
 <li><b>Clima:</b> entrada exógena estocástica real (Open-Meteo); quando Desfavorável, interrompe a operação dos berços ocupados (aplicarClima).</li>
 <li><b>Evolução:</b> processo de nascimento-e-morte simulado por eventos discretos; o dashboard mostra um snapshot a cada polling (botão Acelerar adianta o relógio).</li>
 </ul>
@@ -80,7 +80,7 @@ src/app/
 <h2>Etapa 6 — Guia para apresentação</h2>
 <p><b>Simples:</b> "Modelamos a fila de atracação do Itaqui e construímos o painel que a opera: ele simula navios chegando e atracando em 4 berços, prioriza por um índice e mostra que priorizar bem protege os navios críticos sem piorar o tempo médio."</p>
 <p><b>Técnica:</b> "M/G/4 com prioridade não preemptiva e restrição de berço. O backend é uma simulação de eventos discretos cujo snapshot alimenta o dashboard; a aba Simulação roda a mesma carga sob 4 políticas e mede Wq, Lq, ρ e custo ponderado."</p>
-<p><b>Matemática:</b> "λ por tipo (Poisson), μ por tipo (exponencial), ρ=λ/μ. Na aba Modelo mostramos M/M/1 por berço e M/M/c agregado (Erlang-C: P(espera), Wq, Lq). O IDA = 40 + 2·(espera) + bônus de prioridade."</p>
+<p><b>Matemática:</b> "λ por tipo (Poisson), μ por tipo (exponencial), ρ=λ/μ. Na aba Modelo mostramos M/M/1 por berço e M/M/c agregado (Erlang-C: P(espera), Wq, Lq). O IDA é um score multicritério (0–100): prioridade + espera + tipo de carga + clima + impacto logístico + compatibilidade."</p>
 <p><b>Perguntas prováveis e respostas:</b></p>
 <ul>
 <li><i>"O IDA reduz a espera média?"</i> → "Não necessariamente — por conservação de trabalho, políticas conservativas empatam em Wq. O IDA reduz a espera ponderada e protege os críticos; é esse o objetivo da priorização."</li>

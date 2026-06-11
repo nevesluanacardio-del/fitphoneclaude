@@ -85,7 +85,7 @@ src/app/
 - **Chegadas aleatórias:** processo de **Poisson** (intervalos exponenciais) no
   simulador ao vivo e no DES; ou **AIS real** (aisstream) quando configurado.
 - **Tempos de atendimento variáveis:** **exponenciais com μ por tipo de carga**
-  (Grãos 16h, Contêineres 9h, Combustíveis 20h, Multiuso 12h).
+  (Grãos 18h, Contêineres 12h, Combustíveis 10h, Multiuso 8h).
 - **Clima:** entrada **exógena estocástica real** (Open-Meteo) que classifica o
   risco e, quando **Desfavorável**, **interrompe a operação** dos berços ocupados
   (`aplicarClima`).
@@ -129,7 +129,7 @@ Simulação roda a mesma carga sob 4 políticas e mede Wq, Lq, ρ e custo ponder
 
 **Matemática:** "λ por tipo (Poisson), μ por tipo (exponencial), ρ=λ/μ. Na aba
 Modelo mostramos M/M/1 por berço e M/M/c agregado (Erlang-C: P(espera), Wq, Lq).
-O IDA = 40 + 2·(espera) + bônus de prioridade."
+O IDA é um score multicritério (0–100): prioridade legal/contratual + espera + tipo de carga + clima + impacto logístico + compatibilidade de berço."
 
 **Perguntas prováveis e respostas:**
 - *"O IDA reduz a espera média?"* → "Não necessariamente — por conservação de
