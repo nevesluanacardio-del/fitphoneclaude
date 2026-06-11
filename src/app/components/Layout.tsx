@@ -49,6 +49,37 @@ function StatusAtualizacao() {
   );
 }
 
+// Selo de transparência: mostra a ORIGEM dos dados (navios e clima).
+function SeloFonte() {
+  const { fonte, climaReal } = useDadosOperacionais();
+
+  const navios =
+    fonte === "ais"
+      ? { txt: "Navios: AIS real", cls: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40", dot: "bg-emerald-400" }
+      : fonte === "ais-aguardando"
+        ? { txt: "Navios: AIS (aguardando)", cls: "bg-amber-500/20 text-amber-300 border-amber-500/40", dot: "bg-amber-400" }
+        : { txt: "Navios: simulação (M/G/4)", cls: "bg-blue-500/20 text-blue-200 border-blue-500/40", dot: "bg-blue-400" };
+
+  const clima = climaReal
+    ? { txt: "Clima: Open-Meteo (real)", cls: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40", dot: "bg-emerald-400" }
+    : { txt: "Clima: indisponível", cls: "bg-slate-500/20 text-slate-300 border-slate-500/40", dot: "bg-slate-400" };
+
+  const Badge = ({ txt, cls, dot }: { txt: string; cls: string; dot: string }) => (
+    <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${cls}`}>
+      <span className={`h-2 w-2 rounded-full ${dot}`} />
+      {txt}
+    </span>
+  );
+
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-2">
+      <span className="text-xs text-slate-400">Fonte dos dados:</span>
+      <Badge {...navios} />
+      <Badge {...clima} />
+    </div>
+  );
+}
+
 export function Layout() {
   return (
     <DadosProvider>
@@ -177,8 +208,9 @@ function LayoutInterno() {
 
       {/* Footer */}
       <footer className="bg-slate-800 text-slate-300 py-6 mt-12">
-        <div className="container mx-auto px-6 text-center">
-          <p className="text-sm">
+        <div className="container mx-auto px-6 flex flex-col items-center gap-3">
+          <SeloFonte />
+          <p className="text-sm text-center">
             PortoFlow 4.0 - Sistema de Otimização de Atracação | Engenharia de Software & Pesquisa Operacional
           </p>
         </div>

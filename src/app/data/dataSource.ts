@@ -4,10 +4,16 @@
 
 import type { Navio, Berco, IndicadorOperacional } from "./mockData";
 
+export type FonteNavios = "simulado" | "ais" | "ais-aguardando";
+
 export interface DadosOperacionais {
   navios: Navio[];
   bercos: Berco[];
   indicadores: IndicadorOperacional;
+  /** Origem da fila de navios: simulação, AIS real ou AIS aguardando. */
+  fonte: FonteNavios;
+  /** Clima real (Open-Meteo) disponível neste momento? */
+  climaReal: boolean;
 }
 
 // Endpoint da API. Por padrão usa a rota servida pelo próprio projeto
@@ -33,6 +39,8 @@ interface DadosJson {
   navios: NavioJson[];
   bercos: BercoJson[];
   indicadores: IndicadorOperacional;
+  fonte?: FonteNavios; // só o coletor AIS define; ausente = simulado
+  clima?: { detalhe?: { fonte?: string } };
 }
 
 export async function fetchDadosOperacionais(
@@ -58,5 +66,7 @@ export async function fetchDadosOperacionais(
       previsaoLiberacao: b.previsaoLiberacao ? parseDate(b.previsaoLiberacao) : undefined,
     })),
     indicadores: json.indicadores,
+    fonte: json.fonte ?? "simulado",
+    climaReal: json.clima?.detalhe?.fonte === "open-meteo",
   };
 }

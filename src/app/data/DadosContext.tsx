@@ -12,7 +12,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { fetchDadosOperacionais } from "./dataSource";
+import { fetchDadosOperacionais, type FonteNavios } from "./dataSource";
 import { naviosMock, bercosMock, indicadoresMock } from "./mockData";
 import type { Navio, Berco, IndicadorOperacional } from "./mockData";
 
@@ -23,6 +23,10 @@ interface DadosContextValue {
   ultimaAtualizacao: Date | null;
   carregando: boolean;
   erro: string | null;
+  /** Origem da fila de navios. */
+  fonte: FonteNavios;
+  /** Clima real (Open-Meteo) ativo agora? */
+  climaReal: boolean;
   /** Fast-forward da simulação ao vivo. */
   acelerar: boolean;
   setAcelerar: (v: boolean) => void;
@@ -44,6 +48,8 @@ export function DadosProvider({ children }: { children: ReactNode }) {
   const [ultimaAtualizacao, setUltimaAtualizacao] = useState<Date | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
+  const [fonte, setFonte] = useState<FonteNavios>("simulado");
+  const [climaReal, setClimaReal] = useState(false);
   const [acelerar, setAcelerar] = useState(false);
 
   const [tick, setTick] = useState(0);
@@ -62,6 +68,8 @@ export function DadosProvider({ children }: { children: ReactNode }) {
         setNavios(dados.navios);
         setBercos(dados.bercos);
         setIndicadores(dados.indicadores);
+        setFonte(dados.fonte);
+        setClimaReal(dados.climaReal);
         setUltimaAtualizacao(new Date());
         setErro(null);
       } catch (e) {
@@ -90,6 +98,8 @@ export function DadosProvider({ children }: { children: ReactNode }) {
     ultimaAtualizacao,
     carregando,
     erro,
+    fonte,
+    climaReal,
     acelerar,
     setAcelerar: (v: boolean) => {
       setAcelerar(v);
