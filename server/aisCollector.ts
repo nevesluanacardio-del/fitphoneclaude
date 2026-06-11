@@ -17,6 +17,7 @@ import "dotenv/config"; // carrega .env automaticamente (ignorado se não existi
 import http from "node:http";
 import WebSocket from "ws";
 import { obterDados } from "../api/_lib/obterDados";
+import { calcularIDA } from "../api/_lib/ida";
 import { construirFila, type VesselState } from "./aisMapping";
 
 const API_KEY = process.env.AISSTREAM_API_KEY;
@@ -144,11 +145,14 @@ async function montarResposta(aceleracao = 1) {
     return { ...base, fonte: API_KEY ? "ais-aguardando" : "simulado" };
   }
 
-  // Navios reais do AIS, com o status climático da baía (do clima real).
-  const navios = construirFila(vessels.values(), agora, REF).map((n) => ({
-    ...n,
-    statusClimatico: base.clima.statusClimatico,
-  }));
+  // Navios reais do AIS, com o status climático da baía (do clima real) e IDA
+  // multicritério recalculado já incluindo o fator climático.
+  const navios = construirFila(vessels.values(), agora, REF)
+    .map((n) => {
+      const comClima = { ...n, statusClimatico: base.clima.statusClimatico };
+      return { ...comClima, indiceDinamico: calcularIDA(comClima) };
+    })
+    .sort((a, b) => b.indiceDinamico - a.indiceDinamico);
   return {
     ...base,
     navios,
