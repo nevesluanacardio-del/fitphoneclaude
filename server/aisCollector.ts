@@ -19,6 +19,7 @@ import WebSocket from "ws";
 import { obterDados } from "../api/_lib/obterDados";
 import { calcularIDA } from "../api/_lib/ida";
 import { construirFila, type VesselState } from "./aisMapping";
+import { reconciliarBercos } from "./bercosAis";
 
 const API_KEY = process.env.AISSTREAM_API_KEY;
 const PORT = Number(process.env.PORT) || 8787;
@@ -147,19 +148,26 @@ async function montarResposta(aceleracao = 1) {
 
   // Navios reais do AIS, com o status climático da baía (do clima real) e IDA
   // multicritério recalculado já incluindo o fator climático.
-  const navios = construirFila(vessels.values(), agora, REF)
+  const todos = construirFila(vessels.values(), agora, REF)
     .map((n) => {
       const comClima = { ...n, statusClimatico: base.clima.statusClimatico };
       return { ...comClima, indiceDinamico: calcularIDA(comClima) };
     })
     .sort((a, b) => b.indiceDinamico - a.indiceDinamico);
+
+  // Aloca os navios AIS aos berços (fila dinâmica) e separa quem ainda aguarda.
+  const interrompe = base.clima.statusClimatico === "Desfavorável";
+  const { bercos, fila, ocupados } = reconciliarBercos(todos, agora, aceleracao, interrompe);
+
   return {
     ...base,
-    navios,
+    navios: fila,
+    bercos,
     indicadores: {
       ...base.indicadores,
-      tamanhoFila: navios.length,
-      naviosAtrasoCritico: navios.filter((n) => n.prioridade === "Crítica").length,
+      tamanhoFila: fila.length,
+      naviosAtrasoCritico: fila.filter((n) => n.prioridade === "Crítica").length,
+      utilizacaoBercos: Math.round((ocupados / 4) * 100),
     },
     fonte: "ais",
   };
