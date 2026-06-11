@@ -8,8 +8,9 @@
 
 import type { NavioDTO } from "../api/_lib/baseDados";
 
-// Referência aproximada dos berços do Porto do Itaqui (Baía de São Marcos).
-const ITAQUI = { lat: -2.575, lon: -44.371 };
+// Referência (ponto do porto) para estimar distância/ETA. Padrão: Itaqui.
+export interface Ref { lat: number; lon: number }
+const ITAQUI: Ref = { lat: -2.575, lon: -44.371 };
 
 export interface VesselState {
   mmsi: number;
@@ -64,7 +65,7 @@ function bercoCompativel(tipo: NavioDTO["tipoCarga"]): string[] {
 }
 
 // Tempo de espera ESTIMADO (horas).
-function tempoEsperaEstimado(v: VesselState, agora: number): number {
+function tempoEsperaEstimado(v: VesselState, agora: number, ref: Ref): number {
   const ancorado = v.navStatus === 1; // 1 = At anchor
   if (ancorado) {
     // Horas desde a primeira observação ancorado.
@@ -72,7 +73,7 @@ function tempoEsperaEstimado(v: VesselState, agora: number): number {
   }
   // Em movimento: ETA bruta = distância ao porto / velocidade.
   if (v.lat != null && v.lon != null) {
-    const dist = haversineNm(v.lat, v.lon, ITAQUI.lat, ITAQUI.lon);
+    const dist = haversineNm(v.lat, v.lon, ref.lat, ref.lon);
     const vel = Math.max(v.sog ?? 0, 1);
     return clamp(dist / vel, 0, 72);
   }
@@ -92,9 +93,9 @@ function indiceDinamico(tempoEspera: number, prio: NavioDTO["prioridade"]): numb
   return round1(clamp(40 + tempoEspera * 2 + bonusPrio, 0, 100));
 }
 
-export function vesselParaNavio(v: VesselState, agora: number): NavioDTO {
+export function vesselParaNavio(v: VesselState, agora: number, ref: Ref = ITAQUI): NavioDTO {
   const tipo = tipoCarga(v);
-  const tempoEspera = round1(tempoEsperaEstimado(v, agora));
+  const tempoEspera = round1(tempoEsperaEstimado(v, agora, ref));
   const prio = prioridade(tempoEspera);
   return {
     id: String(v.mmsi),
@@ -113,8 +114,12 @@ export function vesselParaNavio(v: VesselState, agora: number): NavioDTO {
 
 // Converte o conjunto de embarcações observadas em uma fila de navios,
 // ordenada por índice dinâmico (maior primeiro).
-export function construirFila(vessels: Iterable<VesselState>, agora: number): NavioDTO[] {
+export function construirFila(
+  vessels: Iterable<VesselState>,
+  agora: number,
+  ref: Ref = ITAQUI
+): NavioDTO[] {
   return Array.from(vessels)
-    .map((v) => vesselParaNavio(v, agora))
+    .map((v) => vesselParaNavio(v, agora, ref))
     .sort((a, b) => b.indiceDinamico - a.indiceDinamico);
 }

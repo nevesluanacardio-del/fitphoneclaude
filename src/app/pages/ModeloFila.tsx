@@ -48,7 +48,7 @@ export function ModeloFila() {
         {[
           { icon: ArrowDownUp, cor: "text-blue-600", rotulo: "λ total (chegadas)", valor: `${(erlang.lambdaTotal * 24).toFixed(1)}/dia` },
           { icon: Clock, cor: "text-green-600", rotulo: "μ médio (atendimento)", valor: `${(erlang.muMedio * 24).toFixed(2)}/dia` },
-          { icon: Server, cor: "text-purple-600", rotulo: "ρ do sistema (ocupação)", valor: `${(erlang.rho * 100).toFixed(0)}%` },
+          { icon: Server, cor: "text-purple-600", rotulo: "ρ do sistema (0–1)", valor: erlang.rho.toFixed(2) },
           { icon: Layers, cor: "text-yellow-600", rotulo: "Prob. de esperar (Erlang-C)", valor: `${(erlang.Pwait * 100).toFixed(0)}%` },
         ].map((kpi, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm">
@@ -63,7 +63,7 @@ export function ModeloFila() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
         <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
           <h3 className="text-lg font-semibold text-slate-900">Parâmetros e Métricas por Tipo de Carga (fila M/M/1 por berço)</h3>
-          <p className="text-sm text-slate-600 mt-1">λ e μ em navios/hora · Wq, W em horas · Lq, L em número de navios</p>
+          <p className="text-sm text-slate-600 mt-1">λ e μ em navios/hora · Wq, W em horas · Lq, L em número de navios · ρ entre 0 e 1 (≥ 1 = instável)</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -82,7 +82,7 @@ export function ModeloFila() {
                   <td className="px-4 py-3 text-center">{p.mu.toFixed(3)}</td>
                   <td className="px-4 py-3 text-center">{p.lambda.toFixed(3)}</td>
                   <td className="px-4 py-3 text-center">
-                    <span className={`inline-block px-2 py-0.5 rounded-full font-semibold ${p.rho < 0.7 ? "bg-green-100 text-green-700" : p.rho < 0.85 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}`}>{(p.rho * 100).toFixed(0)}%</span>
+                    <span className={`inline-block px-2 py-0.5 rounded-full font-semibold ${p.rho < 0.7 ? "bg-green-100 text-green-700" : p.rho < 0.85 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}`}>{p.rho.toFixed(2)}</span>
                   </td>
                   <td className="px-4 py-3 text-center font-semibold">{p.Wq.toFixed(1)}h</td>
                   <td className="px-4 py-3 text-center">{p.Lq.toFixed(2)}</td>
@@ -103,7 +103,7 @@ export function ModeloFila() {
           {[
             ["c (servidores)", erlang.c.toString()],
             ["r = λ/μ", erlang.r.toFixed(2)],
-            ["ρ = r/c", `${(erlang.rho * 100).toFixed(0)}%`],
+            ["ρ = r/c", erlang.rho.toFixed(2)],
             ["P₀ (sistema vazio)", `${(erlang.P0 * 100).toFixed(1)}%`],
             ["Wq", `${erlang.Wq.toFixed(2)}h`],
             ["Lq", erlang.Lq.toFixed(2)],
@@ -115,7 +115,7 @@ export function ModeloFila() {
           ))}
         </div>
         <div className="mt-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg p-4 text-sm text-slate-700">
-          <strong className="text-blue-900">Leitura:</strong> com ρ = {(erlang.rho * 100).toFixed(0)}%, há {(erlang.Pwait * 100).toFixed(0)}% de chance de um navio encontrar todos os berços ocupados e esperar. No <strong>cenário de pico</strong>, ρ e a espera sobem — é quando a política de priorização mais importa (ver aba Simulação).
+          <strong className="text-blue-900">Leitura:</strong> com ρ = {erlang.rho.toFixed(2)} (estável, pois ρ &lt; 1), há {(erlang.Pwait * 100).toFixed(0)}% de chance de um navio encontrar todos os berços ocupados e esperar. No <strong>cenário de pico</strong>, ρ e a espera sobem — é quando a política de priorização mais importa (ver aba Simulação).
         </div>
       </motion.div>
     </div>

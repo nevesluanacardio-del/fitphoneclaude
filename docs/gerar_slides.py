@@ -296,7 +296,7 @@ text(p, MARG+12, 330, "Resultado: o Navio A (IDA 94) é recomendado para atracar
 p = page(doc); header(p,11,"REQUISITO 4 · SIMULAÇÃO"); footer(p)
 title(p, "Simulação de Cenários")
 text(p, MARG, 84, "O sistema executa Simulação de Eventos Discretos (Poisson + serviço por tipo) para prever o comportamento da fila.", size=12.5, color=CINZA, w=W-2*MARG)
-cen=[("Normal","Demanda típica\nρ ≈ 56%", VERDE),("Pico de Demanda","λ maior\nfila e espera crescem", LARANJA),("Clima Adverso","interrompe operações\nnos berços", VERMELHO)]
+cen=[("Normal","Demanda típica\nρ ≈ 0.56", VERDE),("Pico de Demanda","λ maior\nfila e espera crescem", LARANJA),("Clima Adverso","interrompe operações\nnos berços", VERMELHO)]
 for i,(t,d,c) in enumerate(cen):
     x=MARG+i*250
     rect(p, x,120, x+232,230, c, fill=BRANCO, width=1.6, radius=8)

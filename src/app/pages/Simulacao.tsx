@@ -140,7 +140,7 @@ export function Simulacao() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 pt-6 border-t border-slate-200">
             <div className="text-center"><p className="text-3xl font-bold text-blue-600">{selectedMetrics.Wq}h</p><p className="text-sm text-slate-600 mt-1">Espera Média (Wq)</p></div>
             <div className="text-center"><p className="text-3xl font-bold text-red-600">{selectedMetrics.esperaCritica}h</p><p className="text-sm text-slate-600 mt-1">Espera dos Críticos</p></div>
-            <div className="text-center"><p className="text-3xl font-bold text-green-600">{selectedMetrics.utilizacao}%</p><p className="text-sm text-slate-600 mt-1">Utilização (ρ)</p></div>
+            <div className="text-center"><p className="text-3xl font-bold text-green-600">{selectedMetrics.rho.toFixed(2)}</p><p className="text-sm text-slate-600 mt-1">Utilização ρ (0–1)</p></div>
             <div className="text-center"><p className="text-3xl font-bold text-purple-600">{selectedMetrics.satisfacao}%</p><p className="text-sm text-slate-600 mt-1">Satisfação</p></div>
             <div className="text-center"><p className="text-3xl font-bold text-slate-900">{selectedMetrics.custo}</p><p className="text-sm text-slate-600 mt-1">Custo Relativo</p></div>
           </div>

@@ -23,8 +23,27 @@ const API_KEY = process.env.AISSTREAM_API_KEY;
 const PORT = Number(process.env.PORT) || 8787;
 const STALE_MS = 15 * 60 * 1000; // descarta embarcações sem atualização há 15min
 
-// Bounding box cobrindo a Baía de São Marcos e fundeadouros do Itaqui.
-const BBOX: number[][][] = [[[-3.3, -44.7], [-2.2, -43.8]]];
+// Região monitorada (bounding box). Padrão: Baía de São Marcos / Itaqui.
+// Configurável via AIS_BBOX="sul,oeste,norte,leste" (graus decimais) para apontar
+// para uma área mais movimentada — ex.: Estreito de Singapura, Canal da Mancha.
+function lerBbox(): number[][][] {
+  const env = process.env.AIS_BBOX;
+  if (env) {
+    const n = env.split(",").map((x) => Number(x.trim()));
+    if (n.length === 4 && n.every(Number.isFinite)) {
+      const [sul, oeste, norte, leste] = n;
+      return [[[sul, oeste], [norte, leste]]];
+    }
+    console.warn(`[ais] AIS_BBOX inválido ("${env}") — usando o padrão (São Marcos).`);
+  }
+  return [[[-3.3, -44.7], [-2.2, -43.8]]];
+}
+const BBOX: number[][][] = lerBbox();
+// Ponto de referência (centro da região) para estimar espera/ETA dos navios.
+const REF = {
+  lat: (BBOX[0][0][0] + BBOX[0][1][0]) / 2,
+  lon: (BBOX[0][0][1] + BBOX[0][1][1]) / 2,
+};
 
 const vessels = new Map<number, VesselState>();
 
@@ -67,7 +86,8 @@ function conectarAis() {
           FilterMessageTypes: ["PositionReport", "ShipStaticData"],
         })
       );
-      console.log("[ais] conectado ao aisstream — ouvindo a Baía de São Marcos");
+      const [[s, w], [n, e]] = BBOX[0];
+      console.log(`[ais] conectado ao aisstream — região: lat ${s}..${n}, lon ${w}..${e}`);
     });
 
     ws.on("message", (data: WebSocket.RawData) => {
@@ -125,7 +145,7 @@ async function montarResposta(aceleracao = 1) {
   }
 
   // Navios reais do AIS, com o status climático da baía (do clima real).
-  const navios = construirFila(vessels.values(), agora).map((n) => ({
+  const navios = construirFila(vessels.values(), agora, REF).map((n) => ({
     ...n,
     statusClimatico: base.clima.statusClimatico,
   }));
