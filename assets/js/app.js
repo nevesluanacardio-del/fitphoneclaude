@@ -6,6 +6,11 @@
   // Link de destino do CTA (mentoria / agendamento). Troque pelo seu.
   var CTA_URL = 'https://wa.me/5500000000000?text=Quero%20destravar%20meu%20gargalo';
   var CTA_BUTTON = 'Quero destravar meu gargalo';
+
+  // Captura de leads: endpoint que recebe os dados (Make, Zapier, n8n, sua API...).
+  // Recebe um POST JSON com { nome, email, celular, gargalo, pontuacoes, data }.
+  // Deixe '' (vazio) para apenas salvar localmente, sem enviar para fora.
+  var WEBHOOK_URL = '';
   // ===============================================
 
   var STORAGE_KEY = 'gargalo_oculto_v1';
@@ -36,9 +41,10 @@
   }
 
   // ---------- Navegação ----------
-  // step 0 = intro, 1..N = dimensões, N+1 = resultado
+  // step 0 = intro, 1..N = dimensões, N+1 = captura de lead, N+2 = resultado
   var TOTAL_DIMS = DIMENSIONS.length;
-  var RESULT_STEP = TOTAL_DIMS + 1;
+  var LEAD_STEP = TOTAL_DIMS + 1;
+  var RESULT_STEP = TOTAL_DIMS + 2;
 
   function go(step) {
     state.step = step;
@@ -52,6 +58,9 @@
     var step = state.step;
     if (step <= 0) return renderIntro();
     if (step <= TOTAL_DIMS) return renderDimension(step - 1);
+    if (step === LEAD_STEP) return renderLead();
+    // Garante que o resultado só apareça com o lead capturado.
+    if (!state.lead) return renderLead();
     return renderResult();
   }
 
@@ -127,7 +136,7 @@
       '<div class="actions">' +
         '<button class="btn btn--ghost" id="backBtn">Voltar</button>' +
         '<button class="btn btn--primary" id="nextBtn" disabled>' +
-          (isLast ? 'Ver meu diagnóstico →' : 'Próxima dimensão →') +
+          (isLast ? 'Quase lá — ver resultado →' : 'Próxima dimensão →') +
         '</button>' +
       '</div>';
 
@@ -159,6 +168,114 @@
       if (!allAnswered()) return;
       go(dimIndex + 2); // próxima dimensão ou resultado
     };
+  }
+
+  // ---------- Captura de lead ----------
+  function renderLead() {
+    updateTopbar(LEAD_STEP);
+    var saved = state.lead || {};
+    screenEl.innerHTML =
+      '<div class="step__header">' +
+        '<div class="step__kicker">Último passo</div>' +
+        '<h2 class="step__title">Seu diagnóstico está pronto 🔓</h2>' +
+        '<p class="step__intro">Preencha os dados abaixo para liberar o seu mapa do gargalo oculto e receber uma cópia.</p>' +
+      '</div>' +
+      '<form class="leadform" id="leadForm" novalidate>' +
+        '<label class="field">' +
+          '<span class="field__label">Nome</span>' +
+          '<input class="field__input" id="lf_nome" type="text" name="nome" autocomplete="name" ' +
+            'placeholder="Seu nome completo" value="' + esc(saved.nome || '') + '" required>' +
+          '<span class="field__err" data-for="nome"></span>' +
+        '</label>' +
+        '<label class="field">' +
+          '<span class="field__label">E-mail</span>' +
+          '<input class="field__input" id="lf_email" type="email" name="email" autocomplete="email" ' +
+            'inputmode="email" placeholder="voce@email.com" value="' + esc(saved.email || '') + '" required>' +
+          '<span class="field__err" data-for="email"></span>' +
+        '</label>' +
+        '<label class="field">' +
+          '<span class="field__label">Celular / WhatsApp</span>' +
+          '<input class="field__input" id="lf_celular" type="tel" name="celular" autocomplete="tel" ' +
+            'inputmode="numeric" placeholder="(11) 99999-9999" value="' + esc(saved.celular || '') + '" required>' +
+          '<span class="field__err" data-for="celular"></span>' +
+        '</label>' +
+        '<p class="leadform__privacy">🔒 Seus dados estão seguros. Usamos apenas para enviar seu diagnóstico e conteúdos relacionados.</p>' +
+        '<div class="actions">' +
+          '<button class="btn btn--ghost" id="backBtn" type="button">Voltar</button>' +
+          '<button class="btn btn--primary" id="submitBtn" type="submit">Liberar meu diagnóstico →</button>' +
+        '</div>' +
+      '</form>';
+
+    document.getElementById('backBtn').onclick = function () { go(TOTAL_DIMS); };
+
+    var form = document.getElementById('leadForm');
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var nome = document.getElementById('lf_nome').value.trim();
+      var email = document.getElementById('lf_email').value.trim();
+      var celular = document.getElementById('lf_celular').value.trim();
+
+      clearErrors();
+      var ok = true;
+      if (nome.length < 2) { ok = false; setError('nome', 'Informe seu nome.'); }
+      if (!isValidEmail(email)) { ok = false; setError('email', 'Informe um e-mail válido.'); }
+      if (digits(celular).length < 10) { ok = false; setError('celular', 'Informe um celular válido com DDD.'); }
+      if (!ok) return;
+
+      state.lead = { nome: nome, email: email, celular: celular, capturadoEm: new Date().toISOString() };
+      saveState();
+      submitLead(state.lead);
+      go(RESULT_STEP);
+    });
+
+    // Máscara simples de celular brasileiro
+    var cel = document.getElementById('lf_celular');
+    cel.addEventListener('input', function () {
+      cel.value = maskPhone(cel.value);
+    });
+  }
+
+  function clearErrors() {
+    Array.prototype.forEach.call(screenEl.querySelectorAll('.field__err'), function (e) { e.textContent = ''; });
+    Array.prototype.forEach.call(screenEl.querySelectorAll('.field__input'), function (e) { e.classList.remove('is-invalid'); });
+  }
+  function setError(name, msg) {
+    var err = screenEl.querySelector('.field__err[data-for="' + name + '"]');
+    if (err) err.textContent = msg;
+    var input = screenEl.querySelector('#lf_' + name);
+    if (input) input.classList.add('is-invalid');
+  }
+  function isValidEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
+  function digits(v) { return String(v).replace(/\D/g, ''); }
+  function maskPhone(v) {
+    var d = digits(v).slice(0, 11);
+    if (d.length <= 2) return d.length ? '(' + d : d;
+    if (d.length <= 6) return '(' + d.slice(0, 2) + ') ' + d.slice(2);
+    if (d.length <= 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6);
+    return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7);
+  }
+
+  // Envia o lead para o webhook (se configurado) junto do resultado do diagnóstico.
+  function submitLead(lead) {
+    if (!WEBHOOK_URL) return;
+    var scores = DIMENSIONS.map(function (d) { return { dimensao: d.name, pontuacao: scoreFor(d) }; });
+    var bottleneck = scores.slice().sort(function (a, b) { return a.pontuacao - b.pontuacao; })[0];
+    var payload = {
+      nome: lead.nome,
+      email: lead.email,
+      celular: lead.celular,
+      gargalo: bottleneck ? bottleneck.dimensao : null,
+      pontuacoes: scores,
+      data: lead.capturadoEm,
+    };
+    try {
+      fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        keepalive: true,
+      }).catch(function () {});
+    } catch (e) {}
   }
 
   // ---------- Pontuação ----------

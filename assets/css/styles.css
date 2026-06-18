@@ -335,3 +335,35 @@ body {
   background: none; border: none; color: var(--muted);
   font: inherit; text-decoration: underline; cursor: pointer; padding: 8px;
 }
+
+/* ---------- Formulário de captura ---------- */
+.leadform { display: flex; flex-direction: column; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field__label {
+  font-size: 13px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.field__input {
+  font: inherit;
+  font-size: 16px; /* evita zoom no iOS */
+  color: var(--text);
+  background: var(--card-2);
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  width: 100%;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field__input::placeholder { color: #6b7894; }
+.field__input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18);
+}
+.field__input.is-invalid {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18);
+}
+.field__err { font-size: 13px; color: #fca5a5; min-height: 0; }
+.field__err:empty { display: none; }
+.leadform__privacy { font-size: 13px; color: var(--muted); margin: 2px 0 0; text-align: center; }
